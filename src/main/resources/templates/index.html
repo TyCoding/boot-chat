@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Chat</title>
+    <link rel="stylesheet" th:href="@{/element-ui/lib/theme-chalk/index.css}">
+    <link rel="stylesheet" th:href="@{/main.css}">
+    <script th:src="@{/vue.js}"></script>
+    <script th:src="@{/vue-resources.min.js}"></script>
+    <script th:src="@{/element-ui/lib/index.js}"></script>
+</head>
+<body style="background: #f5f5f5 url('/avatar/bg.jpg') no-repeat center;background-size: cover">
+<div id="app">
+    <div class="page-loader" ref="loader">
+        <div class="page-loader__spinner">
+            <svg viewBox="25 25 50 50">
+                <circle cx="50" cy="50" r="20" fill="none" stroke-width="2" stroke-miterlimit="10"/>
+            </svg>
+        </div>
+    </div>
+    <div role="alert" class="el-notification left" style="top: 16px; z-index: 2000;">
+        <i class="el-notification__icon el-icon-success"></i>
+        <div class="el-notification__group is-with-icon">
+            <h2 class="el-notification__title">系统信息</h2>
+            <div class="el-notification__content">
+                <p>
+                    在线：12
+                    <br>
+                    系统时间： {{date}}
+                    <br>
+                    <br>
+                    <el-button style="float: right" size="mini" type="danger" plain>注销</el-button>
+                </p>
+            </div>
+        </div>
+    </div>
+    <div class="sidebar">
+        <div class="card">
+            <header>
+                <img class="avatar" width="40" height="40" :alt="user.name" :src="user.avatar">
+                <p class="name">{{user.name}}</p>
+            </header>
+            <footer>
+                <input class="search" type="text" placeholder="search user...">
+            </footer>
+        </div>
+        <div class="list">
+            <ul>
+                <li :class="{ active: current_window_id === 0 }" @click="selectWindow(0)">
+                    <img class="avatar" width="30" height="30" src="/avatar/group.png">
+                    <p class="name">官方群组</p>
+                </li>
+                <li v-for="item in userList" v-if="item.id != form.id" :class="{ active: current_window_id === item.id }"
+                    @click="selectWindow(item.id)">
+                    <img class="avatar" width="30" height="30" :alt="item.name" :src="item.avatar">
+                    <p class="name">{{item.name}}</p>
+                </li>
+            </ul>
+        </div>
+    </div>
+    <div class="main">
+        <div class="message" ref="box">
+            <ul>
+                <li v-for="item in messageList">
+                    <p class="time">
+                        <span>{{item.time}}</span>
+                    </p>
+                    <div class="main self">
+                        <img class="avatar" width="30" height="30" :src="item.from.avatar"/>
+                        <span class="main-name">{{item.from.name}}</span>
+                        <div class="text">{{item.content}}</div>
+                    </div>
+                </li>
+            </ul>
+        </div>
+        <div class="text">
+            <el-input
+                    v-model="form.message" @keyup.native.enter="send"
+                    type="textarea" :rows="5" placeholder="请输入内容，按 Enter 键发送">
+            </el-input>
+            <div class="btn">
+                <el-button @click="clean" size="mini" type="danger">清空</el-button>
+                <el-button @click="send" size="mini" icon="el-icon-position" type="success">发送</el-button>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    new Vue({
+        el: '#app',
+        data() {
+            return {
+                date: this.parseTime(new Date().getTime(), ''),
+                websocket: undefined,
+                user: {
+                    id: '',
+                    avatar: '',
+                    name: ''
+                },
+
+                form: {message: ''},
+
+                //当前激活窗口ID
+                current_window_id: 0,
+
+                //在线用户列表
+                userList: [],
+                //推送消息列表
+                messageList  : [],
+
+            }
+        },
+        beforeDestroy() {
+            if (this.timer) {
+                clearInterval(this.timer);
+            }
+        },
+        mounted() {
+            this.init();
+            let _this = this;
+            this.timer = setInterval(() => {
+                _this.date = this.parseTime(new Date().getTime(), '');
+            }, 1000)
+            this.$refs.loader.style.display = 'none';
+        },
+        created() {
+            this.form.id = this.subURL();
+        },
+        methods: {
+            _message(message, type) {
+                this.$message({
+                    message: message,
+                    type: type
+                })
+            },
+            _notify(title, message, type) {
+                this.$notify({
+                    title: title,
+                    message: message,
+                    type: type
+                });
+            },
+
+            /**
+             * Get Rest URL params
+             * for example: http://localhost:8080/1560490905528/chat
+             *
+             * return 1560490905528
+             */
+            subURL() {
+                return window.location.pathname.substring(window.location.pathname.indexOf('/') + 1, window.location.pathname.lastIndexOf('/'))
+            },
+
+            init() {
+                /*this.$notify({
+                    title: '系统信息',
+                    message: '在线：12<br/><el-button size="mini">注销</el-button>',
+                    type: 'success',
+                    position: 'top-left',
+                    showClose: false,
+                    dangerouslyUseHTMLString: true,
+                    duration: 0
+                });*/
+
+                /**
+                 * 加载用户信息
+                 */
+                this.initUser();
+
+                /**
+                 * 加载公共消息列表 -- 群组
+                 */
+                this.initCommonMessage();
+
+                /**
+                 * 每次刷新页面，主动链接WebSocket
+                 */
+                this.initWebSocket();
+            },
+
+            initUser() {
+                //加载当前用户信息
+                this.$http.get('/chat/' + this.form.id).then(response => {
+                    this.user = response.body.data
+                })
+
+                //加载在线用户列表
+                this.$http.get('/chat/online/list').then(response => {
+                    let data = response.body.data;
+                    if (data.length > 0) {
+                        this.userList = data;
+                    }
+                })
+            },
+
+            initWebSocket() {
+                let $this = this;
+                this.websocket = new WebSocket('ws://localhost:8080/chat/' + this.form.id)
+                //链接发送错误时调用
+                this.websocket.onerror = function () {
+                    $this._notify('链接错误', 'WebSocket链接错误', 'error')
+                }
+                //链接成功时调用
+                this.websocket.onopen = function () {
+                    $this._notify('链接成功', 'WebSocket链接成功', 'success')
+                }
+                //接收到消息时回调
+                this.websocket.onmessage = function (event) {
+                    $this.form.message = ''
+                    console.log(event)
+                }
+                //链接关闭时调用
+                this.websocket.onclose = function () {
+                    $this._notify('链接关闭', 'WebSocket链接关闭', 'info')
+                }
+            },
+
+            initCommonMessage() {
+                this.$http.get('/chat/common').then(response => {
+                    let data = response.body.data
+                    if (data.length > 0) {
+                        this.messageList = data
+                    }
+                    console.log(this.messageList)
+                })
+            },
+
+            //推送消息
+            send() {
+                if (this.form.message == null || this.form.message.trim() == '') {
+                    this._message('请输入消息内容', 'warning')
+                    return;
+                }
+                this.websocket.send(this.form.message)
+                this.initCommonMessage()
+                this.scroll()
+            },
+
+            //清空消息
+            clean() {
+                this.form.message = ''
+            },
+
+            //切换选择窗口
+            selectWindow(id) {
+                this.current_window_id = id;
+            },
+
+            //窗口滚动
+            scroll() {
+                let box = this.$refs.box
+                box.scrollTop = 1000000
+            },
+
+            parseTime(time, cFormat) {
+                if (arguments.length === 0) {
+                    return null
+                }
+                const format = cFormat || '{y}-{m}-{d} {h}:{i}:{s}'
+                let date
+                if (typeof time === 'object') {
+                    date = time
+                } else {
+                    if ((typeof time === 'string') && (/^[0-9]+$/.test(time))) {
+                        time = parseInt(time)
+                    }
+                    if ((typeof time === 'number') && (time.toString().length === 10)) {
+                        time = time * 1000
+                    }
+                    date = new Date(time)
+                }
+                const formatObj = {
+                    y: date.getFullYear(),
+                    m: date.getMonth() + 1,
+                    d: date.getDate(),
+                    h: date.getHours(),
+                    i: date.getMinutes(),
+                    s: date.getSeconds(),
+                    a: date.getDay()
+                }
+                const time_str = format.replace(/{(y|m|d|h|i|s|a)+}/g, (result, key) => {
+                    let value = formatObj[key]
+                    // Note: getDay() returns 0 on Sunday
+                    if (key === 'a') { return ['日', '一', '二', '三', '四', '五', '六'][value ] }
+                    if (result.length > 0 && value < 10) {
+                        value = '0' + value
+                    }
+                    return value || 0
+                })
+                return time_str
+            }
+        }
+    })
+</script>
+
+</body>
+</html>
