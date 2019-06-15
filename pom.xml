@@ -12,7 +12,7 @@
     <packaging>jar</packaging>
 
     <properties>
-        <spring-boot-mybatis.version>2.0.1</spring-boot-mybatis.version>
+        <fastjson.version>1.2.58</fastjson.version>
     </properties>
 
     <dependencies>
@@ -40,6 +40,13 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-thymeleaf</artifactId>
         </dependency>
+
+        <!-- FastJSON -->
+        <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>fastjson</artifactId>
+            <version>${fastjson.version}</version>
+        </dependency>
     </dependencies>
 
     <build>
@@ -48,7 +55,7 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <configuration>
-                    <mainClass>cn.tycoding.BootWebSocketApplication</mainClass>
+                    <mainClass>cn.tycoding.BootChatApplication</mainClass>
                 </configuration>
             </plugin>
         </plugins>

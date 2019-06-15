@@ -3,11 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <title>Login</title>
-    <link rel="stylesheet" th:href="@{/element-ui/lib/theme-chalk/index.css}">
+    <link rel="stylesheet" th:href="@{/lib/element-ui/lib/theme-chalk/index.css}">
     <link rel="stylesheet" th:href="@{/main.css}">
-    <script th:src="@{/vue.min.js}"></script>
-    <script th:src="@{/vue-resources.min.js}"></script>
-    <script th:src="@{/element-ui/lib/index.js}"></script>
 </head>
 <body>
 <div id="app">
@@ -19,7 +16,7 @@
         </div>
     </div>
 
-    <el-dialog title="登录聊天室" :visible.sync="dialog" width="30%" :show-close="false" :close-on-press-escape="false" :close-on-click-modal="false">
+    <el-dialog title="登录聊天室" :visible.sync="dialog" width="35%" :show-close="false" :close-on-press-escape="false" :close-on-click-modal="false">
         <el-form ref="form" :model="form">
             <el-form-item prop="name" label="昵称" label-width="80px" required>
                 <el-input v-model="form.name"></el-input>
@@ -38,7 +35,6 @@
         </span>
     </el-dialog>
 
-
     <el-dialog title="选择头像" :visible.sync="avatarDialog" width="40%" :close-on-press-escape="false" :close-on-click-modal="false">
         <div class="modal-body">
             <form>
@@ -53,52 +49,9 @@
         </span>
     </el-dialog>
 </div>
-<script type="text/javascript">
-    new Vue({
-        el: '#app',
-        data() {
-            return {
-                dialog: true,
-                avatarDialog: false,
-                form: {},
-                avatarList: [],
-            }
-        },
-        mounted() {
-            this.$refs.loader.style.display = 'none';
-        },
-        methods: {
-            handleEditAvatar() {
-                this.$http.get('/avatar/avatar.json').then(response => {
-                    this.avatarList = response.body;
-                });
-                this.avatarDialog = true;
-            },
-            changeAvatar(url) {
-                this.form.avatar = url;
-                this.avatarDialog = false;
-            },
-
-            login(form) {
-                this.$refs[form].validate(valid => {
-                    if (valid) {
-                        if (this.form.avatar == null || this.form.avatar == '') {
-                            this._notify('请选择头像', 'warning')
-                            return;
-                        }
-                        this.form.id = new Date().getTime();
-                        this.$http.post('/login', JSON.stringify(this.form)).then(response => {
-                            window.location.href = '/' + this.form.id + '/chat'
-                            this.dialog = false
-                        })
-                    } else {
-                        return false;
-                    }
-                })
-            }
-        }
-    })
-
-</script>
+<script th:src="@{/lib/vue.min.js}"></script>
+<script th:src="@{/lib/vue-resources.min.js}"></script>
+<script th:src="@{/lib/element-ui/lib/index.js}"></script>
+<script th:src="@{/login.js}"></script>
 </body>
 </html>

@@ -1,6 +1,6 @@
 package cn.tycoding;
 
-import cn.tycoding.config.RequestListener;
+import cn.tycoding.listener.RequestListener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -12,10 +12,10 @@ import org.springframework.context.annotation.Bean;
  * @date 2019-06-11
  */
 @SpringBootApplication
-public class BootWebSocketApplication {
+public class BootChatApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(BootWebSocketApplication.class, args);
+        SpringApplication.run(BootChatApplication.class, args);
     }
 
     @Autowired

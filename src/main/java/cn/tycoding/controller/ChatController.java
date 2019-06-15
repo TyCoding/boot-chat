@@ -1,17 +1,15 @@
 package cn.tycoding.controller;
 
-import cn.tycoding.config.WebsocketServerEndpoint;
-import cn.tycoding.constant.CommonConstant;
 import cn.tycoding.entity.Message;
 import cn.tycoding.entity.User;
+import cn.tycoding.service.ChatSessionService;
 import cn.tycoding.utils.R;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.ArrayList;
-import java.util.Enumeration;
 import java.util.List;
 
 /**
@@ -22,6 +20,9 @@ import java.util.List;
 @Controller
 @RequestMapping("/chat")
 public class ChatController {
+
+    @Autowired
+    private ChatSessionService chatSessionService;
 
     /**
      * 获取当前窗口用户信息
@@ -49,13 +50,14 @@ public class ChatController {
      */
     @ResponseBody
     @GetMapping("/push/{id}")
-    public String push(@PathVariable("id") String id, @RequestParam("message") String message) {
+    public R push(@PathVariable("id") String id, @RequestParam("message") String message) {
         try {
-            WebsocketServerEndpoint.sendInfo(id, message);
-            return "推送消息成功";
+            WebsocketServerEndpoint endpoint = new WebsocketServerEndpoint();
+            endpoint.sendTo(id, message);
+            return new R();
         } catch (Exception e) {
             e.printStackTrace();
-            return "推送消息失败";
+            return new R(500, "消息推送失败");
         }
     }
 
@@ -68,14 +70,7 @@ public class ChatController {
     @ResponseBody
     @GetMapping("/online/list")
     public R onlineList(HttpServletRequest request) {
-        List<User> list = new ArrayList<>();
-        Enumeration<String> ids = request.getSession().getAttributeNames();
-        while (ids.hasMoreElements()) {
-            String id = ids.nextElement();
-            if (request.getSession().getAttribute(id) instanceof User) {
-                list.add((User) request.getSession().getAttribute(id));
-            }
-        }
+        List<User> list = chatSessionService.onlineList(request.getSession());
         return new R(list);
     }
 
@@ -87,47 +82,36 @@ public class ChatController {
      */
     @ResponseBody
     @GetMapping("/common")
-    public R common(HttpServletRequest request) {
-        List<Message> list = new ArrayList<>();
-        Enumeration<String> ids = request.getSession().getAttributeNames();
-        while (ids.hasMoreElements()) {
-            String id = ids.nextElement();
-            //指定前缀标识
-            if (id.startsWith(CommonConstant.CHAT_COMMON_PREFIX)) {
-                Object attribute = request.getSession().getAttribute(id);
-                if (attribute instanceof List) {
-                    list = (List<Message>) attribute;
-                }
-            }
-        }
+    public R commonList(HttpServletRequest request) {
+        List<Message> list = chatSessionService.commonList(request.getSession());
         return new R(list);
     }
 
     /**
      * 获取指定用户的聊天消息内容
      *
-     * @param id
+     * @param fromId  该用户ID
+     * @param toId    哪个窗口
      * @param request 从Session中获取
      * @return
      */
     @ResponseBody
-    @GetMapping("/self/{id}")
-    public R self(@PathVariable("id") String id, HttpServletRequest request) {
-        List<Message> list = new ArrayList<>();
-        request.getSession().getAttribute(id);
+    @GetMapping("/self/{fromId}/{toId}")
+    public R selfList(@PathVariable("fromId") String fromId, @PathVariable("toId") String toId, HttpServletRequest request) {
+        List<Message> list = chatSessionService.selfList(fromId, toId, request.getSession());
         return new R(list);
     }
 
     /**
      * 退出登录
      *
-     * @param id
-     * @param request
+     * @param id      用户ID
+     * @param request 从Session中剔除
      * @return
      */
     @ResponseBody
-    @GetMapping("/logout")
-    public R logout(String id, HttpServletRequest request) {
+    @DeleteMapping("/{id}")
+    public R logout(@PathVariable("id") String id, HttpServletRequest request) {
         if (id != null) {
             request.getSession().removeAttribute(id);
         }

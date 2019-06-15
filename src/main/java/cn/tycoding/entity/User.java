@@ -16,4 +16,8 @@ public class User implements Serializable {
     private String name;
 
     private String avatar;
+
+    public void setName(String name) {
+        this.name = name.trim();
+    }
 }

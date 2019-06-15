@@ -1,6 +1,13 @@
-package cn.tycoding.config;
+package cn.tycoding.controller;
 
+import cn.tycoding.config.HttpSessionConfig;
+import cn.tycoding.entity.Message;
+import cn.tycoding.entity.User;
 import cn.tycoding.service.ChatSessionService;
+import cn.tycoding.utils.CoreUtil;
+import cn.tycoding.utils.R;
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -10,6 +17,7 @@ import javax.websocket.*;
 import javax.websocket.server.PathParam;
 import javax.websocket.server.ServerEndpoint;
 import java.io.IOException;
+import java.util.Date;
 import java.util.concurrent.CopyOnWriteArraySet;
 
 /**
@@ -23,13 +31,14 @@ public class WebsocketServerEndpoint {
     private HttpSession httpSession;
 
     private static ChatSessionService chatSessionService;
+
     @Autowired
     public void setChatSessionService(ChatSessionService chatSessionService) {
         WebsocketServerEndpoint.chatSessionService = chatSessionService;
     }
 
     //在线连接数
-    private static int onlineCount = 0;
+    private static long online = 0;
 
     //用于存放当前Websocket对象的Set集合
     private static CopyOnWriteArraySet<WebsocketServerEndpoint> websocketServerEndpoints = new CopyOnWriteArraySet<>();
@@ -37,8 +46,8 @@ public class WebsocketServerEndpoint {
     //与客户端的会话Session
     private Session session;
 
-    //会话窗口的ID标识
-    private String id = "";
+    //当前会话窗口ID
+    private String fromId = "";
 
     /**
      * 链接成功调用的方法
@@ -60,13 +69,34 @@ public class WebsocketServerEndpoint {
 
         log.info("有新窗口开始监听：" + id + ", 当前在线人数为：" + getOnlineCount());
 
-        this.id = id;
+        this.fromId = id;
 
         try {
-            sendMessage("有新窗口开始监听：" + id + ", 当前在线人数为：" + getOnlineCount());
+            User user = new User();
+            Object attribute = httpSession.getAttribute(fromId);
+            if (attribute instanceof User) {
+                user = (User) attribute;
+            }
+            sendMessage(JSON.toJSONString(new R(200, "用户 " + user.getName() + " 已上线")));
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    private String getData(String toId, String message) throws IOException {
+        Message entity = new Message();
+        entity.setContent(message);
+        entity.setTime(CoreUtil.format(new Date()));
+        entity.setOnline(online);
+        Object from = httpSession.getAttribute(fromId);
+        if (from instanceof User) {
+            entity.setFrom((User) from);
+        }
+        Object to = httpSession.getAttribute(toId);
+        if (to instanceof User) {
+            entity.setTo((User) to);
+        }
+        return JSONObject.toJSONString(new R(entity));
     }
 
     /**
@@ -89,18 +119,17 @@ public class WebsocketServerEndpoint {
      * 收到客户端消息后调用的方法
      *
      * @param message
-     * @param session
      */
     @OnMessage
-    public void onMessage(String message, Session session) {
-        log.info("接收到窗口：" + id + " 的信息：" + message);
+    public void onMessage(String message) {
+        log.info("接收到窗口：" + fromId + " 的信息：" + message);
 
-        chatSessionService.pushMessage(id, message, httpSession);
+        chatSessionService.pushMessage(fromId, null, message, httpSession);
 
         //发送信息
         for (WebsocketServerEndpoint websocketServerEndpoint : websocketServerEndpoints) {
             try {
-                websocketServerEndpoint.sendMessage("接收到窗口：" + id + " 的信息：" + message);
+                websocketServerEndpoint.sendMessage(getData(null, message));
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -108,7 +137,7 @@ public class WebsocketServerEndpoint {
     }
 
     @OnError
-    public void onError(Session session, Throwable e) {
+    public void onError(Throwable e) {
         e.printStackTrace();
     }
 
@@ -122,19 +151,25 @@ public class WebsocketServerEndpoint {
     }
 
     /**
-     * 自定义推送消息
+     * 指定窗口推送消息
      *
-     * @param message
-     * @param id
+     * @param message 推送消息
+     * @param toId    接收方ID
      */
-    public static void sendInfo(String id, String message) {
-        log.info("推送消息到窗口：" + id + " ，推送内容：" + message);
+    public void sendTo(String toId, String message) {
+        if (websocketServerEndpoints.size() < 1) {
+            throw new RuntimeException("用户未在线");
+        }
         for (WebsocketServerEndpoint endpoint : websocketServerEndpoints) {
             try {
-                if (id == null) {
-                    endpoint.sendMessage(message);
-                } else if (endpoint.id.equals(id)) {
-                    endpoint.sendMessage(message);
+                if (toId == null) {
+                    log.error("推送失败，找不到该ID对应的窗口");
+                    endpoint.sendMessage(JSONObject.toJSONString(new R(500, "推送失败")));
+                } else if (endpoint.fromId.equals(toId)) {
+                    log.info("推送消息到窗口：" + toId + " ，推送内容：" + message);
+
+                    endpoint.sendMessage(getData(toId, message));
+                    chatSessionService.pushMessage(fromId, toId, message, httpSession);
                 }
             } catch (Exception e) {
                 e.printStackTrace();
@@ -144,14 +179,14 @@ public class WebsocketServerEndpoint {
     }
 
     private void subOnLineCount() {
-        WebsocketServerEndpoint.onlineCount--;
+        WebsocketServerEndpoint.online--;
     }
 
-    public static synchronized int getOnlineCount() {
-        return onlineCount;
+    private synchronized long getOnlineCount() {
+        return online;
     }
 
     private void addOnlineCount() {
-        WebsocketServerEndpoint.onlineCount++;
+        WebsocketServerEndpoint.online++;
     }
 }

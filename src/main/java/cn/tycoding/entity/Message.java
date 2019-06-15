@@ -1,11 +1,8 @@
 package cn.tycoding.entity;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
-import org.springframework.format.annotation.DateTimeFormat;
 
 import java.io.Serializable;
-import java.util.Date;
 
 /**
  * 会话消息实体
@@ -36,7 +33,14 @@ public class Message implements Serializable {
     /**
      * 创建时间
      */
-    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
-    private Date time;
+    private String time;
+
+    /**
+     * 在线数量
+     */
+    private Long online;
+
+    public void setContent(String content) {
+        this.content = content == null ? "" : content.replaceAll("\r\n|\r|\n", "");
+    }
 }
