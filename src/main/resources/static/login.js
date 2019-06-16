@@ -13,7 +13,7 @@ new Vue({
     },
     methods: {
         handleEditAvatar() {
-            this.$http.get('/avatar/avatar.json').then(response => {
+            this.$http.get(api.getAvatarList()).then(response => {
                 this.avatarList = response.body;
             });
             this.avatarDialog = true;
@@ -31,10 +31,10 @@ new Vue({
                         return;
                     }
                     this.form.id = new Date().getTime();
-                    this.$http.post('/login', JSON.stringify(this.form)).then(response => {
+                    this.$http.post(api.login(), JSON.stringify(this.form)).then(response => {
                         console.log(response)
                         if (response.body.code == 200) {
-                            window.location.href = '/' + this.form.id + '/chat'
+                            window.location.href = api.redirect(this.form.id)
                         } else {
                             this.$message({
                                 message: response.body.msg,

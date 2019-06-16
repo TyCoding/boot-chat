@@ -90,12 +90,12 @@ new Vue({
 
         initUser() {
             //加载当前用户信息
-            this.$http.get('/chat/' + this.form.id).then(response => {
+            this.$http.get(api.getUser(this.form.id)).then(response => {
                 this.user = response.body.data
             })
 
             //加载在线用户列表
-            this.$http.get('/chat/online/list').then(response => {
+            this.$http.get(api.getOnline()).then(response => {
                 let data = response.body.data;
                 if (data.length > 0) {
                     this.userList = data;
@@ -106,7 +106,7 @@ new Vue({
         initWebSocket() {
             let $this = this;
             console.log($this.messageList)
-            this.websocket = new WebSocket('ws://localhost:8080/chat/' + this.form.id)
+            this.websocket = new WebSocket(api.websocket(this.form.id))
             //链接发送错误时调用
             this.websocket.onerror = function () {
                 $this._notify('链接错误', 'WebSocket链接错误', 'error')
@@ -152,7 +152,7 @@ new Vue({
         },
 
         initCommonMessage() {
-            this.$http.get('/chat/common').then(response => {
+            this.$http.get(api.getCommon()).then(response => {
                 let data = response.body.data
                 if (data.length > 0) {
                     this.messageList = data
@@ -161,7 +161,7 @@ new Vue({
         },
 
         intSelfMessage() {
-            this.$http.get('/chat/self/' + this.form.id + '/' + this.current_window_id).then(response => {
+            this.$http.get(api.getSelf(this.form.id, this.current_window_id)).then(response => {
                 let data = response.body.data
                 this.messageList = data
             })
@@ -181,7 +181,7 @@ new Vue({
                     message: this.form.message,
                     from: this.user
                 }
-                this.$http.post('/chat/push/' + this.current_window_id, JSON.stringify(data)).then(response => {
+                this.$http.post(api.pushId(this.current_window_id), JSON.stringify(data)).then(response => {
                     this.intSelfMessage()
                     this.clean()
                     this._notify('推送成功', '消息推送成功', 'success')
@@ -197,7 +197,7 @@ new Vue({
 
         //注销
         logout() {
-            this.$http.delete('/chat/' + this.form.id).then(response => {
+            this.$http.delete(api.logout(this.form.id)).then(response => {
                 this.websocket.close()
                 window.location.href = "/"
             })

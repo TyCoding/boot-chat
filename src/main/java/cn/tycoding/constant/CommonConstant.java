@@ -9,7 +9,7 @@ package cn.tycoding.constant;
 public interface CommonConstant {
 
     /**
-     * 公共聊天消息Session Key前缀标识
+     * 群发消息Session Key前缀标识
      */
     String CHAT_COMMON_PREFIX = "CHAT_COMMON_";
 
