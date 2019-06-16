@@ -3,10 +3,8 @@ package cn.tycoding.controller;
 import cn.tycoding.entity.User;
 import cn.tycoding.utils.R;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.context.WebApplicationContext;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.Enumeration;
@@ -20,9 +18,6 @@ import java.util.Enumeration;
 @Slf4j
 @Controller
 public class RouterController {
-
-    @Autowired
-    private WebApplicationContext webApplicationContext;
 
     /**
      * 登陆页面

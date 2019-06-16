@@ -13,6 +13,16 @@
 
 [Chat](http://39.105.46.235:8087/)
 
+**注意！注意！注意！**
+
+当前版本中，使用HTTPSession储存的WebSocket会话消息（包括登录用户信息），因此就不可避免的会遇到Session不能被共享导致的数据丢失。
+
+因此，在我部署的线上地址上可能出现数据丢失。如果是测试学习，请使用同一个浏览器换用不同用户登录，这不会产生上述问题了。
+
+SO，后续我会使用Redis储存WebSocket的会话消息（当前版本的优点就是开箱即用，只需要JDK环境即可运行项目打包jar）。
+
+正在开发中，可以fork关注哦~~
+
 ## 介绍
 
 基于SpringBoot-2.1.5、SpringBoot-Starter-Websocket构建，前端使用Vue.js、ElementUI框架。

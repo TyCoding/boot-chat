@@ -39,7 +39,7 @@ let api = {
      * WebSocket服务器链接接口
      */
     websocket(id) {
-        return 'ws://localhost:8080/chat/' + id
+        return 'ws://127.0.0.1:8080/chat/' + id
     },
 
     /**
