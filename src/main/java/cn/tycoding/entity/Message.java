@@ -21,7 +21,7 @@ public class Message implements Serializable {
     /**
      * 消息内容
      */
-    private String content;
+    private String message;
 
     /**
      * 消息接收者：
@@ -40,7 +40,7 @@ public class Message implements Serializable {
      */
     private Long online;
 
-    public void setContent(String content) {
-        this.content = content == null ? "" : content.replaceAll("\r\n|\r|\n", "");
+    public void setMessage(String message) {
+        this.message = message == null ? "" : message.replaceAll("\r\n|\r|\n", "");
     }
 }

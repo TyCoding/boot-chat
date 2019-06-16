@@ -32,8 +32,15 @@ new Vue({
                     }
                     this.form.id = new Date().getTime();
                     this.$http.post('/login', JSON.stringify(this.form)).then(response => {
-                        window.location.href = '/' + this.form.id + '/chat'
-                        this.dialog = false
+                        console.log(response)
+                        if (response.body.code == 200) {
+                            window.location.href = '/' + this.form.id + '/chat'
+                        } else {
+                            this.$message({
+                                message: response.body.msg,
+                                type: 'error'
+                            })
+                        }
                     })
                 } else {
                     return false;

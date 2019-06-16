@@ -71,6 +71,7 @@ new Vue({
         },
 
         init() {
+            console.log(this.messageList)
             /**
              * 加载用户信息
              */
@@ -104,6 +105,7 @@ new Vue({
 
         initWebSocket() {
             let $this = this;
+            console.log($this.messageList)
             this.websocket = new WebSocket('ws://localhost:8080/chat/' + this.form.id)
             //链接发送错误时调用
             this.websocket.onerror = function () {
@@ -115,19 +117,33 @@ new Vue({
             }
             //接收到消息时回调
             this.websocket.onmessage = function (event) {
-                $this.form.message = ''
+                $this.clean()
                 console.log(event)
                 let entity = JSON.parse(event.data);
+                //上线提醒
                 if (entity.data == undefined) {
+                    $this.online = entity.online
+                    $this.initUser()
                     $this._notify('消息', entity.msg, 'info')
                     return;
                 }
+
+                //消息接收
                 let data = JSON.parse(event.data).data
                 console.log(data)
                 if (data.online != undefined) {
                     $this.online = data.online
                 }
-                $this.messageList.push(data)
+
+                if (data.to != undefined) {
+                    //单个窗口发送，仅推送到指定的窗口
+                    if (data.to.id == this.current_window_id) {
+                        $this.messageList.push(data)
+                    }
+                } else {
+                    //群发，推送到官方群组窗口
+                    $this.messageList.push(data)
+                }
             }
             //链接关闭时调用
             this.websocket.onclose = function () {
@@ -161,7 +177,13 @@ new Vue({
                 this.websocket.send(this.form.message.replace(/[\r\n]/g,""))
                 this.initCommonMessage()
             } else {
-                this.$http.get('/chat/push/' + this.current_window_id, this.form.message).then(response => {
+                let data = {
+                    message: this.form.message,
+                    from: this.user
+                }
+                this.$http.post('/chat/push/' + this.current_window_id, JSON.stringify(data)).then(response => {
+                    this.intSelfMessage()
+                    this.clean()
                     this._notify('推送成功', '消息推送成功', 'success')
                 })
             }

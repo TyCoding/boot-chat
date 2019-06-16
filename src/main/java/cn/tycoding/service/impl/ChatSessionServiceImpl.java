@@ -27,7 +27,7 @@ public class ChatSessionServiceImpl implements ChatSessionService {
         Object user = session.getAttribute(fromId);
         if (user instanceof User) {
             Message entity = new Message();
-            entity.setContent(message);
+            entity.setMessage(message);
             entity.setFrom((User) user);
             entity.setTime(CoreUtil.format(new Date()));
             if (toId != null) {

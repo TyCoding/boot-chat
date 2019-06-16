@@ -44,16 +44,16 @@ public class ChatController {
     /**
      * 向指定窗口推送消息
      *
-     * @param id
-     * @param message
+     * @param toId 接收方ID
+     * @param message 消息
      * @return
      */
     @ResponseBody
-    @GetMapping("/push/{id}")
-    public R push(@PathVariable("id") String id, @RequestParam("message") String message) {
+    @PostMapping("/push/{toId}")
+    public R push(@PathVariable("toId") String toId, @RequestBody Message message, HttpServletRequest request) {
         try {
             WebsocketServerEndpoint endpoint = new WebsocketServerEndpoint();
-            endpoint.sendTo(id, message);
+            endpoint.sendTo(toId, message, request.getSession());
             return new R();
         } catch (Exception e) {
             e.printStackTrace();
