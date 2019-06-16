@@ -8,7 +8,7 @@
   <img src="https://img.shields.io/badge/Vue.js-2.6.10-blue.svg" alt="Coverage Status">
   <img src="https://img.shields.io/badge/ElementUI-2.7.0-blue.svg" alt="Coverage Status">
  </p>
- 
+
 **线上地址**
 
 [Chat](http://39.105.46.235:8087/)
@@ -132,6 +132,8 @@ Access http://localhost:8080 using Chrome
 ## 关于我
 
 [传送门](https://www.tycoding.cn/about/)
+
+个人Java交流群：671017003
 
 
 ## 预览
