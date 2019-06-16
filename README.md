@@ -122,3 +122,10 @@ Access http://localhost:8080 using Chrome
 ## 关于我
 
 [传送门](https://www.tycoding.cn/about/)
+
+
+## 预览
+
+![](doc/2019061610856.png)
+
+![](doc/2019061610852.png)
