@@ -6,7 +6,6 @@ import cn.tycoding.service.ChatSessionService;
 import cn.tycoding.utils.R;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
@@ -17,7 +16,7 @@ import java.util.List;
  * @date 2019-06-11
  */
 @Slf4j
-@Controller
+@RestController
 @RequestMapping("/chat")
 public class ChatController {
 
@@ -31,7 +30,6 @@ public class ChatController {
      * @param request
      * @return
      */
-    @ResponseBody
     @GetMapping("/{id}")
     public R info(@PathVariable("id") String id, HttpServletRequest request) {
         User user = new User();
@@ -48,7 +46,6 @@ public class ChatController {
      * @param message 消息
      * @return
      */
-    @ResponseBody
     @PostMapping("/push/{toId}")
     public R push(@PathVariable("toId") String toId, @RequestBody Message message, HttpServletRequest request) {
         try {
@@ -67,7 +64,6 @@ public class ChatController {
      * @param request 从Session中获取
      * @return
      */
-    @ResponseBody
     @GetMapping("/online/list")
     public R onlineList(HttpServletRequest request) {
         List<User> list = chatSessionService.onlineList(request.getSession());
@@ -80,7 +76,6 @@ public class ChatController {
      * @param request 从Session中获取
      * @return
      */
-    @ResponseBody
     @GetMapping("/common")
     public R commonList(HttpServletRequest request) {
         List<Message> list = chatSessionService.commonList(request.getSession());
@@ -95,7 +90,6 @@ public class ChatController {
      * @param request 从Session中获取
      * @return
      */
-    @ResponseBody
     @GetMapping("/self/{fromId}/{toId}")
     public R selfList(@PathVariable("fromId") String fromId, @PathVariable("toId") String toId, HttpServletRequest request) {
         List<Message> list = chatSessionService.selfList(fromId, toId, request.getSession());
@@ -109,7 +103,6 @@ public class ChatController {
      * @param request 从Session中剔除
      * @return
      */
-    @ResponseBody
     @DeleteMapping("/{id}")
     public R logout(@PathVariable("id") String id, HttpServletRequest request) {
         if (id != null) {

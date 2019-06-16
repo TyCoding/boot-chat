@@ -31,7 +31,7 @@ public class RouterController {
      */
     @GetMapping("/")
     public String index() {
-        return "/login";
+        return "login";
     }
 
     /**
@@ -69,6 +69,6 @@ public class RouterController {
         if (user == null) {
             return "redirect:/";
         }
-        return "/index";
+        return "index";
     }
 }
