@@ -201,7 +201,7 @@ public class WebsocketServerEndpoint {
         }
     }
 
-    private void subOnLineCount() {
+    private synchronized void subOnLineCount() {
         WebsocketServerEndpoint.online--;
     }
 
@@ -209,7 +209,7 @@ public class WebsocketServerEndpoint {
         return online;
     }
 
-    private void addOnlineCount() {
+    private synchronized void addOnlineCount() {
         WebsocketServerEndpoint.online++;
     }
 }
