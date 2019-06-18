@@ -13,19 +13,22 @@
 
 [Chat](http://39.105.46.235:8087/)
 
-欢迎star、fork支持
+**欢迎star、fork支持**
 
 ## 介绍
 
 本仓库中包含了两个子项目：
 
-* [session-chat]()  基于HTTPSession实现会话消息储存，受限于不同浏览器Session不能共享导致的数据丢失（如果使用同一浏览器测试则不会出现问题）
+* [session-chat](https://github.com/TyCoding/boot-chat/tree/master/session-chat)  基于HTTPSession实现会话消息储存，受限于不同浏览器Session不能共享导致的数据丢失（如果使用同一浏览器测试则不会出现问题）
 
-* [redis-chat]()  基于Redis实现会话消息储存，会话数据不会丢失，并使用定时任务，定时清除Redis中注册时间过长的用户数据以及其会话消息
+* [redis-chat](https://github.com/TyCoding/boot-chat/tree/master/redis-chat)  基于Redis实现会话消息储存，会话数据不会丢失，并使用定时任务，定时清除Redis中注册时间过长的用户数据以及其会话消息
 
 ## 写在前面
 
-本仓库中包含的是两个项目，如果使用 [session-chat]() 项目，则开箱即用；如果使用 [redis-chat]() 项目，启动前需要配置好本地Redis环境才可。
+本仓库中包含的是两个项目:
+
+*   如果使用 [session-chat]() 项目，则开箱即用
+*   如果使用 [redis-chat]() 项目，启动前需要配置好本地Redis环境才可。
 
 **注意** 由于WebSocket限制，HTML与服务端通信，需要保证WebSocket链接的IP和浏览器访问的IP项目，如果是localhost就都是localhost，如果是127.0.0.1就都改为127.0.0.1，否则可能消息推送失败。
 
