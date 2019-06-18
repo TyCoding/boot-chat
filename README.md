@@ -27,8 +27,8 @@
 
 本仓库中包含的是两个项目:
 
-*   如果使用 [session-chat]() 项目，则开箱即用
-*   如果使用 [redis-chat]() 项目，启动前需要配置好本地Redis环境才可。
+*   如果使用 [session-chat](https://github.com/TyCoding/boot-chat/tree/master/session-chat) 项目，则开箱即用
+*   如果使用 [redis-chat](https://github.com/TyCoding/boot-chat/tree/master/redis-chat) 项目，启动前需要配置好本地Redis环境才可。
 
 **注意** 由于WebSocket限制，HTML与服务端通信，需要保证WebSocket链接的IP和浏览器访问的IP项目，如果是localhost就都是localhost，如果是127.0.0.1就都改为127.0.0.1，否则可能消息推送失败。
 
