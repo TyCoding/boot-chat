@@ -3,7 +3,6 @@ new Vue({
     data() {
         return {
             online: 0,
-            date: this.parseTime(new Date().getTime(), ''),
             websocket: undefined,
             user: {
                 id: '',
@@ -23,9 +22,6 @@ new Vue({
 
         }
     },
-    beforeUpdate() {
-        this.scroll();
-    },
     updated() {
         this.scroll();
     },
@@ -36,10 +32,6 @@ new Vue({
     },
     mounted() {
         this.init();
-        let _this = this;
-        this.timer = setInterval(() => {
-            _this.date = this.parseTime(new Date().getTime(), '');
-        }, 1000)
         this.$refs.loader.style.display = 'none';
     },
     created() {
@@ -105,7 +97,6 @@ new Vue({
 
         initWebSocket() {
             let $this = this;
-            console.log($this.messageList)
             this.websocket = new WebSocket(api.websocket(this.form.id))
             //链接发送错误时调用
             this.websocket.onerror = function () {
@@ -118,7 +109,6 @@ new Vue({
             //接收到消息时回调
             this.websocket.onmessage = function (event) {
                 $this.clean()
-                console.log(event)
                 let entity = JSON.parse(event.data);
                 //上线提醒
                 if (entity.data == undefined) {
@@ -130,7 +120,6 @@ new Vue({
 
                 //消息接收
                 let data = JSON.parse(event.data).data
-                console.log(data)
                 if (data.online != undefined) {
                     $this.online = data.online
                 }
@@ -218,43 +207,5 @@ new Vue({
             let box = this.$refs.box
             box.scrollTop = 10000
         },
-
-        parseTime(time, cFormat) {
-            if (arguments.length === 0) {
-                return null
-            }
-            const format = cFormat || '{y}-{m}-{d} {h}:{i}:{s}'
-            let date
-            if (typeof time === 'object') {
-                date = time
-            } else {
-                if ((typeof time === 'string') && (/^[0-9]+$/.test(time))) {
-                    time = parseInt(time)
-                }
-                if ((typeof time === 'number') && (time.toString().length === 10)) {
-                    time = time * 1000
-                }
-                date = new Date(time)
-            }
-            const formatObj = {
-                y: date.getFullYear(),
-                m: date.getMonth() + 1,
-                d: date.getDate(),
-                h: date.getHours(),
-                i: date.getMinutes(),
-                s: date.getSeconds(),
-                a: date.getDay()
-            }
-            const time_str = format.replace(/{(y|m|d|h|i|s|a)+}/g, (result, key) => {
-                let value = formatObj[key]
-                // Note: getDay() returns 0 on Sunday
-                if (key === 'a') { return ['日', '一', '二', '三', '四', '五', '六'][value ] }
-                if (result.length > 0 && value < 10) {
-                    value = '0' + value
-                }
-                return value || 0
-            })
-            return time_str
-        }
     }
 })
