@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Chat</title>
+    <link rel="stylesheet" th:href="@{/lib/element-ui/lib/theme-chalk/index.css}">
+    <link rel="stylesheet" th:href="@{/main.css}">
+</head>
+<body style="background: #f5f5f5 url('/avatar/bg.jpg') no-repeat center;background-size: cover">
+<div id="app">
+    <div class="page-loader" ref="loader">
+        <div class="page-loader__spinner">
+            <svg viewBox="25 25 50 50">
+                <circle cx="50" cy="50" r="20" fill="none" stroke-width="2" stroke-miterlimit="10"/>
+            </svg>
+        </div>
+    </div>
+    <div role="alert" class="el-notification left" style="top: 16px; z-index: 2000;">
+        <i class="el-notification__icon el-icon-success"></i>
+        <div class="el-notification__group is-with-icon">
+            <h2 class="el-notification__title">系统信息</h2>
+            <div class="el-notification__content">
+                <p>
+                    在线用户： {{online}}
+                    <br>
+                    开源地址：<a href="https://github.com/TyCoding/boot-chat/" target="_blank">boot-chat</a>
+                    <br>
+                    作者：<a href="https://www.tycoding.cn/" target="_blank">https://www.tycoding.cn/</a>
+                    <br>
+                    <br>
+                    <el-button @click="logout" style="float: right" size="mini" type="danger" plain>注销</el-button>
+                </p>
+            </div>
+        </div>
+    </div>
+    <div class="sidebar">
+        <div class="card">
+            <header>
+                <img class="avatar" width="40" height="40" :alt="user.name" :src="user.avatar">
+                <p class="name">{{user.name}}</p>
+            </header>
+            <footer>
+                <input class="search" type="text" placeholder="search user...">
+            </footer>
+        </div>
+        <div class="list">
+            <ul>
+                <li :class="{ active: current_window_id === 0 }" @click="selectWindow(0)">
+                    <img class="avatar" width="30" height="30" src="/avatar/group.png">
+                    <p class="name">官方群组</p>
+                </li>
+                <li v-for="item in userList" v-if="item.id != form.id" :class="{ active: current_window_id === item.id }"
+                    @click="selectWindow(item.id)">
+                    <img class="avatar" width="30" height="30" :alt="item.name" :src="item.avatar">
+                    <p class="name">{{item.name}}</p>
+                </li>
+            </ul>
+        </div>
+    </div>
+    <div class="main">
+        <div class="message" ref="box">
+            <ul>
+                <li v-for="(item,key) in messageList" :id="key == (messageList.length - 1) ? 'end' : ''">
+                    <p class="time">
+                        <span>{{item.time}}</span>
+                    </p>
+                    <div :class="'main ' +  (item.from.id == form.id ? 'self': '')">
+                        <img class="avatar" width="30" height="30" :src="item.from.avatar"/>
+                        <span class="main-name">{{item.from.name}}</span>
+                        <div class="text">{{item.message}}</div>
+                    </div>
+                </li>
+            </ul>
+        </div>
+        <div class="text">
+            <el-input
+                    v-model="form.message" @keyup.native.enter="send"
+                    type="textarea" :rows="5" placeholder="请输入内容，按 Enter 键发送">
+            </el-input>
+            <div class="btn">
+                <el-button @click="clean" size="mini" type="danger">清空</el-button>
+                <el-button @click="send" size="mini" icon="el-icon-position" type="success">发送</el-button>
+            </div>
+        </div>
+    </div>
+</div>
+<script th:src="@{/lib/vue.min.js}"></script>
+<script th:src="@{/lib/vue-resources.min.js}"></script>
+<script th:src="@{/lib/element-ui/lib/index.js}"></script>
+<script th:src="@{/api.js}"></script>
+<script th:src="@{/index.js}"></script>
+</body>
+</html>
